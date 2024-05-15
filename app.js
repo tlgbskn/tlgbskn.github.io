@@ -28,14 +28,18 @@ navigator.mediaDevices.enumerateDevices()
         console.error('Error enumerating devices: ' + err);
     });
 
-function startCamera(deviceId) {
-    const constraints = {
-        video: {
-            deviceId: { exact: deviceId }
+    function startCamera(deviceId = null) {
+        const constraints = {
+            video: {
+                facingMode: { exact: "environment" }
+            }
+        };
+        if (deviceId) {
+            constraints.video.deviceId = { exact: deviceId };
         }
-    };
+    
 
-    navigator.mediaDevices.getUserMedia(constraints)
+        navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
             video.srcObject = stream;
             Quagga.init({
@@ -46,11 +50,11 @@ function startCamera(deviceId) {
                     constraints: constraints
                 },
                 decoder: {
-                    readers: ["ean_reader"],
+                    readers: ["ean_reader"], // ISBN numaraları genellikle EAN-13 formatındadır
                     locate: true
                 },
                 locate: true,
-                frequency: 2,
+                frequency: 2, // Algılama frekansı (ms cinsinden)
             }, err => {
                 if (err) {
                     console.error(err);
