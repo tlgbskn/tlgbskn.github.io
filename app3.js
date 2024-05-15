@@ -71,9 +71,14 @@ function startCamera(deviceId = null) {
 function onDetectedHandler(data) {
     if (isProcessing) return;
 
-    isProcessing = true;
     const isbn = data.codeResult.code;
-    Quagga.stop(); // Quagga'yı durdur
+    if (books[isbn]) {
+        books[isbn].count += 1;
+        displayBookData(books[isbn]);
+        return;
+    }
+
+    isProcessing = true;
     fetchBookData(isbn);
 }
 
@@ -101,20 +106,17 @@ async function fetchBookData(isbn) {
     }
 
     if (bookData.title) {
-        displayBookData(bookData);
         if (books[isbn]) {
             books[isbn].count += 1;
         } else {
             books[isbn] = { ...bookData, count: 1 };
         }
+        displayBookData(bookData);
     } else {
         alert("Book not found.");
     }
 
-    setTimeout(() => {
-        Quagga.start(); // Quagga'yı tekrar başlat
-        isProcessing = false;
-    }, 2000); // 2 saniye bekleyin
+    isProcessing = false; // İşlem tamamlandı
 }
 
 function displayBookData(bookData) {
