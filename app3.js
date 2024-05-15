@@ -117,6 +117,7 @@ async function fetchBookData(isbn) {
     }
 
     isProcessing = false; // İşlem tamamlandı
+    Quagga.start(); // Quagga'yı tekrar başlat
 }
 
 function displayBookData(bookData) {
