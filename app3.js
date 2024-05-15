@@ -1,6 +1,7 @@
 const video = document.getElementById('video');
 const snapButton = document.getElementById('snap');
 const endSessionButton = document.getElementById('end-session');
+const continueButton = document.getElementById('continue');
 const isbnElem = document.getElementById('isbn');
 const titleElem = document.getElementById('title');
 const authorsElem = document.getElementById('authors');
@@ -106,13 +107,22 @@ async function fetchBookData(isbn) {
             displayBookData(bookData);
         } else {
             alert("Book not found.");
+            showContinueButton();
         }
     } catch (error) {
         console.error('Error fetching book data: ', error);
+        showContinueButton();
     }
 
-    isProcessing = false; // İşlem tamamlandı
-    Quagga.start(); // Quagga'yı tekrar başlat
+    isProcessing = false;
+}
+
+function showContinueButton() {
+    continueButton.style.display = 'block';
+}
+
+function hideContinueButton() {
+    continueButton.style.display = 'none';
 }
 
 function displayBookData(bookData) {
@@ -122,6 +132,11 @@ function displayBookData(bookData) {
     publisherElem.textContent = `Publisher: ${bookData.publisher}`;
     coverElem.src = bookData.cover;
 }
+
+continueButton.addEventListener('click', () => {
+    hideContinueButton();
+    Quagga.start();
+});
 
 endSessionButton.addEventListener('click', () => {
     const workbook = XLSX.utils.book_new();

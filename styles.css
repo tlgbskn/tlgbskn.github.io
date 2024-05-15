@@ -54,3 +54,7 @@ button {
 button:hover {
     background: #0056b3;
 }
+
+#continue {
+    display: none;
+}
