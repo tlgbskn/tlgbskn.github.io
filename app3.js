@@ -31,7 +31,9 @@ navigator.mediaDevices.enumerateDevices()
 function startCamera(deviceId = null) {
     const constraints = {
         video: {
-            facingMode: { exact: "environment" }
+            facingMode: { exact: "environment" },
+            width: { ideal: 640 },
+            height: { ideal: 480 }
         }
     };
     if (deviceId) {
@@ -53,7 +55,7 @@ function startCamera(deviceId = null) {
                     locate: true
                 },
                 locate: true,
-                frequency: 2, // Algılama frekansı (ms cinsinden)
+                frequency: 5, // Algılama frekansı (ms cinsinden)
             }, err => {
                 if (err) {
                     console.error(err);
