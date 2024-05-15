@@ -1,5 +1,3 @@
-import { fetchBookData } from './api.js';
-
 const video = document.getElementById('video');
 const snapButton = document.getElementById('snap');
 const endSessionButton = document.getElementById('end-session');
@@ -79,7 +77,28 @@ function onDetectedHandler(data) {
     fetchBookData(isbn);
 }
 
+async function fetchBookData(isbn) {
+    const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`;
 
+    let bookData = {};
+
+    try {
+        const googleBooksResponse = await fetch(googleBooksUrl);
+        const googleBooksData = await googleBooksResponse.json();
+
+        if (googleBooksData.totalItems > 0) {
+            const book = googleBooksData.items[0].volumeInfo;
+            bookData = {
+                isbn: isbn,
+                title: book.title,
+                authors: book.authors.join(', '),
+                publisher: book.publisher,
+                cover: book.imageLinks?.thumbnail || ""
+            };
+        }
+    } catch (error) {
+        console.error('Error fetching book data: ', error);
+    }
 
     if (bookData.title) {
         displayBookData(bookData);
@@ -96,7 +115,7 @@ function onDetectedHandler(data) {
         Quagga.start(); // Quagga'yı tekrar başlat
         isProcessing = false;
     }, 2000); // 2 saniye bekleyin
-
+}
 
 function displayBookData(bookData) {
     isbnElem.textContent = `ISBN: ${bookData.isbn}`;
