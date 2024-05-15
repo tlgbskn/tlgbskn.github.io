@@ -15,7 +15,8 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    width: 800px;
+    width: 100%;
+    max-width: 800px;
     text-align: center;
 }
 
@@ -57,4 +58,21 @@ button:hover {
 
 #continue {
     display: none;
+}
+
+@media (max-width: 600px) {
+    .container {
+        width: 90%;
+        padding: 10px;
+    }
+
+    .book-info img {
+        max-width: 150px;
+    }
+
+    button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+    }
 }
