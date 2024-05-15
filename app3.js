@@ -105,6 +105,7 @@ async function fetchBookData(isbn) {
 
             books[isbn] = bookData;
             displayBookData(bookData);
+            isProcessing = false;
         } else {
             alert("Book not found.");
             showContinueButton();
@@ -113,8 +114,6 @@ async function fetchBookData(isbn) {
         console.error('Error fetching book data: ', error);
         showContinueButton();
     }
-
-    isProcessing = false;
 }
 
 function showContinueButton() {
@@ -123,6 +122,8 @@ function showContinueButton() {
 
 function hideContinueButton() {
     continueButton.style.display = 'none';
+    isProcessing = false;
+    Quagga.start();
 }
 
 function displayBookData(bookData) {
