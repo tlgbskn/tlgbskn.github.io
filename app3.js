@@ -72,12 +72,6 @@ function onDetectedHandler(data) {
     if (isProcessing) return;
 
     const isbn = data.codeResult.code;
-    if (books[isbn]) {
-        books[isbn].count += 1;
-        displayBookData(books[isbn]);
-        return;
-    }
-
     isProcessing = true;
     fetchBookData(isbn);
 }
@@ -100,23 +94,19 @@ async function fetchBookData(isbn) {
                 publisher: book.publisher,
                 cover: book.imageLinks?.thumbnail || ""
             };
+
+            if (!books[isbn]) {
+                books[isbn] = { ...bookData, count: 1 };
+            }
+            displayBookData(bookData);
+        } else {
+            alert("Book not found.");
         }
     } catch (error) {
         console.error('Error fetching book data: ', error);
     }
 
-    if (bookData.title) {
-        if (books[isbn]) {
-            books[isbn].count += 1;
-        } else {
-            books[isbn] = { ...bookData, count: 1 };
-        }
-        displayBookData(bookData);
-    } else {
-        alert("Book not found.");
-    }
-
-    isProcessing = false; // İşlem tamamlandı
+    isProcessing = false;
     Quagga.start(); // Quagga'yı tekrar başlat
 }
 
