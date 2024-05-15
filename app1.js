@@ -13,7 +13,7 @@ let books = {};
 navigator.mediaDevices.enumerateDevices()
     .then(devices => {
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        const usbCamera = videoDevices.find(device => device.label.includes('USB') || device.deviceId);
+        const usbCamera = videoDevices.find(device => device.label.includes('USB'));
 
         if (usbCamera) {
             startCamera(usbCamera.deviceId);
@@ -29,7 +29,7 @@ navigator.mediaDevices.enumerateDevices()
 function startCamera(deviceId = null) {
     const constraints = {
         video: {
-            facingMode: "environment"
+            facingMode: { exact: "environment" }
         }
     };
     if (deviceId) {
@@ -44,11 +44,7 @@ function startCamera(deviceId = null) {
                     name: "Live",
                     type: "LiveStream",
                     target: video,
-                    constraints: {
-                        width: 640,
-                        height: 480,
-                        facingMode: "environment"
-                    }
+                    constraints: constraints
                 },
                 decoder: {
                     readers: ["ean_reader"] // ISBN numaraları genellikle EAN-13 formatındadır
