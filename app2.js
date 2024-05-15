@@ -8,6 +8,7 @@ const publisherElem = document.getElementById('publisher');
 const coverElem = document.getElementById('cover');
 
 let books = {};
+let isProcessing = false;
 
 // List all video input devices and select the USB camera
 navigator.mediaDevices.enumerateDevices()
@@ -58,8 +59,12 @@ function startCamera(deviceId = null) {
             });
 
             Quagga.onDetected(data => {
-                const isbn = data.codeResult.code;
-                fetchBookData(isbn);
+                if (!isProcessing) {
+                    isProcessing = true;
+                    const isbn = data.codeResult.code;
+                    Quagga.stop(); // Quagga'yı durdur
+                    fetchBookData(isbn);
+                }
             });
         })
         .catch(err => {
@@ -100,6 +105,11 @@ async function fetchBookData(isbn) {
     } else {
         alert("Book not found.");
     }
+
+    setTimeout(() => {
+        Quagga.start(); // Quagga'yı tekrar başlat
+        isProcessing = false;
+    }, 2000); // 2 saniye bekleyin
 }
 
 function displayBookData(bookData) {
