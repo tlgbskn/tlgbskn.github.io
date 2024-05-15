@@ -73,6 +73,13 @@ function onDetectedHandler(data) {
 
     const isbn = data.codeResult.code;
     isProcessing = true;
+
+    if (books[isbn]) {
+        displayBookData(books[isbn]);
+        isProcessing = false; // İşlem tamamlandı
+        return;
+    }
+
     fetchBookData(isbn);
 }
 
@@ -90,14 +97,12 @@ async function fetchBookData(isbn) {
             bookData = {
                 isbn: isbn,
                 title: book.title,
-                authors: book.authors.join(', '),
-                publisher: book.publisher,
+                authors: book.authors ? book.authors.join(', ') : 'N/A',
+                publisher: book.publisher ? book.publisher : 'N/A',
                 cover: book.imageLinks?.thumbnail || ""
             };
 
-            if (!books[isbn]) {
-                books[isbn] = { ...bookData, count: 1 };
-            }
+            books[isbn] = bookData;
             displayBookData(bookData);
         } else {
             alert("Book not found.");
@@ -106,7 +111,7 @@ async function fetchBookData(isbn) {
         console.error('Error fetching book data: ', error);
     }
 
-    isProcessing = false;
+    isProcessing = false; // İşlem tamamlandı
     Quagga.start(); // Quagga'yı tekrar başlat
 }
 
@@ -122,7 +127,7 @@ endSessionButton.addEventListener('click', () => {
     const workbook = XLSX.utils.book_new();
     const worksheetData = [["ISBN", "Title", "Authors", "Publisher", "Count"]];
     for (const [isbn, book] of Object.entries(books)) {
-        worksheetData.push([isbn, book.title, book.authors, book.publisher, book.count]);
+        worksheetData.push([isbn, book.title, book.authors, book.publisher, 1]);
     }
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
     XLSX.utils.book_append_sheet(workbook, worksheet, "Books");
