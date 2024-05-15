@@ -1,8 +1,8 @@
 import { fetchBookData } from './api.js';
 
 const video = document.getElementById('video');
-const snapButton = document.getElementById('snap');
 const endSessionButton = document.getElementById('end-session');
+const continueButton = document.getElementById('continue');
 const isbnElem = document.getElementById('isbn');
 const titleElem = document.getElementById('title');
 const authorsElem = document.getElementById('authors');
@@ -16,28 +16,24 @@ let isProcessing = false;
 navigator.mediaDevices.enumerateDevices()
     .then(devices => {
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        const usbCamera = videoDevices.find(device => device.label.includes('USB'));
+        const rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('back')) || videoDevices[0];
 
-        if (usbCamera) {
-            startCamera(usbCamera.deviceId);
+        if (rearCamera) {
+            startCamera(rearCamera.deviceId);
         } else {
-            // Eğer USB kamera bulunamazsa varsayılan olarak arka kamerayı kullan
-            startCamera();
+            console.error('No camera found');
         }
     })
     .catch(err => {
         console.error('Error enumerating devices: ' + err);
     });
 
-function startCamera(deviceId = null) {
+function startCamera(deviceId) {
     const constraints = {
         video: {
-            facingMode: { exact: "environment" }
+            deviceId: { exact: deviceId }
         }
     };
-    if (deviceId) {
-        constraints.video.deviceId = { exact: deviceId };
-    }
 
     navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
@@ -50,11 +46,11 @@ function startCamera(deviceId = null) {
                     constraints: constraints
                 },
                 decoder: {
-                    readers: ["ean_reader"], // ISBN numaraları genellikle EAN-13 formatındadır
+                    readers: ["ean_reader"],
                     locate: true
                 },
                 locate: true,
-                frequency: 2, // Algılama frekansı (ms cinsinden)
+                frequency: 2,
             }, err => {
                 if (err) {
                     console.error(err);
@@ -73,30 +69,37 @@ function startCamera(deviceId = null) {
 function onDetectedHandler(data) {
     if (isProcessing) return;
 
-    isProcessing = true;
     const isbn = data.codeResult.code;
-    Quagga.stop(); // Quagga'yı durdur
-    fetchBookData(isbn);
+    isProcessing = true;
+    Quagga.stop();
+
+    fetchBookData(isbn)
+        .then(bookData => {
+            if (books[isbn]) {
+                books[isbn].count += 1;
+            } else {
+                books[isbn] = { ...bookData, count: 1 };
+            }
+            displayBookData(bookData);
+            setTimeout(() => {
+                Quagga.start();
+                isProcessing = false;
+            }, 2000);
+        })
+        .catch(error => {
+            alert("Error: " + error.message);
+            showContinueButton();
+            isProcessing = false;
+        });
 }
 
+function showContinueButton() {
+    continueButton.style.display = 'block';
+}
 
-
-    if (bookData.title) {
-        displayBookData(bookData);
-        if (books[isbn]) {
-            books[isbn].count += 1;
-        } else {
-            books[isbn] = { ...bookData, count: 1 };
-        }
-    } else {
-        alert("Book not found.");
-    }
-
-    setTimeout(() => {
-        Quagga.start(); // Quagga'yı tekrar başlat
-        isProcessing = false;
-    }, 2000); // 2 saniye bekleyin
-
+function hideContinueButton() {
+    continueButton.style.display = 'none';
+}
 
 function displayBookData(bookData) {
     isbnElem.textContent = `ISBN: ${bookData.isbn}`;
@@ -105,6 +108,12 @@ function displayBookData(bookData) {
     publisherElem.textContent = `Publisher: ${bookData.publisher}`;
     coverElem.src = bookData.cover;
 }
+
+continueButton.addEventListener('click', () => {
+    hideContinueButton();
+    Quagga.start();
+    isProcessing = false;
+});
 
 endSessionButton.addEventListener('click', () => {
     const workbook = XLSX.utils.book_new();
@@ -116,7 +125,6 @@ endSessionButton.addEventListener('click', () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Books");
     XLSX.writeFile(workbook, "books.xlsx");
 
-    // Reset for a new session
     books = {};
     alert("Session ended and books.xlsx has been saved.");
 });
