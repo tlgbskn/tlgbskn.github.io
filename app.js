@@ -12,31 +12,28 @@ const coverElem = document.getElementById('cover');
 
 let books = {};
 let isProcessing = false;
+let videoDevices = [];
 
+// List all video input devices and let the user select the rear camera
 navigator.mediaDevices.enumerateDevices()
     .then(devices => {
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        const usbCamera = videoDevices.find(device => device.label.includes('USB'));
-
-        if (usbCamera) {
-            startCamera(usbCamera.deviceId);
+        videoDevices = devices.filter(device => device.kind === 'videoinput');
+        if (videoDevices.length > 1) {
+            startCamera(videoDevices[0].deviceId);  // Usually the second camera is the rear one
         } else {
-            startCamera();
+            startCamera(videoDevices[1].deviceId);  // Use the only available camera
         }
     })
     .catch(err => {
         console.error('Error enumerating devices: ' + err);
     });
 
-function startCamera(deviceId = null) {
+function startCamera(deviceId) {
     const constraints = {
         video: {
-            facingMode: { exact: "environment" }
+            deviceId: { exact: deviceId }
         }
     };
-    if (deviceId) {
-        constraints.video.deviceId = { exact: deviceId };
-    }
 
     navigator.mediaDevices.getUserMedia(constraints)
         .then(stream => {
